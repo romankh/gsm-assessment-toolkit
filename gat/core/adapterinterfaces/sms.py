@@ -4,7 +4,7 @@ from abc import abstractmethod
 
 class SmsAdapter(object):
     @abstractmethod
-    def __init__(self, config_provider):
+    def __init__(self, config_provider, timeout):
         pass
 
     @abstractmethod

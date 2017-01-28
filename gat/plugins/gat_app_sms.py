@@ -21,7 +21,7 @@ class GatAppSmsPlugin(PluginBase):
         def callback(msg):
             response_queue.put(msg)
 
-        adapter = GatAppSmsAdapter(self._config_provider)
+        adapter = GatAppSmsAdapter(self._config_provider, args.wait)
         adapter.register_read_callback(callback)
 
         smstext = ''

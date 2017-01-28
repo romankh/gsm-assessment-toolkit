@@ -7,14 +7,15 @@ from gat.core.adapterinterfaces.types import SmsType
 
 
 class GatAppSmsAdapter(SmsAdapter):
-    def __init__(self, config_provider):
-        super(GatAppSmsAdapter, self).__init__(config_provider)
+    def __init__(self, config_provider, timeout=10):
+        super(GatAppSmsAdapter, self).__init__(config_provider, timeout)
         self.__connected = False
         self.__config_provider = config_provider
         self.__gat_host = config_provider.get('gat-app', 'host')
         self.__gat_port = config_provider.getint('gat-app', 'port')
         self.__callback = None
         self.__read_thread = None
+        self.__timeout = timeout
 
     def register_read_callback(self, callback):
         if not self.__connected:
@@ -48,7 +49,7 @@ class GatAppSmsAdapter(SmsAdapter):
         remote_address = (self.__gat_host, self.__gat_port)
         try:
             self.__sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.__sock.settimeout(2)
+            self.__sock.settimeout(self.__timeout)
             self.__sock.connect(remote_address)
         except socket.error as msg:
             self.__handle_message("Connection to GAT-App failed: %s" % msg)
@@ -78,7 +79,8 @@ class GatAppSmsAdapter(SmsAdapter):
             msg = None
             try:
                 msg = self.__sock.recv(1024)
-            except IOError:
+            except Exception, e:
+                print "Error occurred: %s " % e
                 pass
 
             if msg is None:

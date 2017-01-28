@@ -90,3 +90,5 @@ ENV/
 
 # kde directory settings
 .directory
+
+.idea/

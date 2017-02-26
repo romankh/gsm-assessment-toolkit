@@ -56,8 +56,24 @@ class PluginContainer(object):
 
     def get_func_parser(self, func_name):
         function = self.clazz.cmds[func_name]
-        parser = ConsoleArgumentParser(prog=function.name, description=function.description,
-                                       formatter_class=GatHelpFormatter)
+
+        main_parser = ConsoleArgumentParser(prog=function.name, description=function.description,
+                                            formatter_class=GatHelpFormatter)
+        self.__configure_parser(function, main_parser)
+
+        if func_name in self.clazz.subcmds:
+            sub_parsers = main_parser.add_subparsers(help="commands")
+            for entry in self.clazz.subcmds:
+                parent_dict = self.clazz.subcmds[entry]
+                for parent in parent_dict:
+                    subcmd = parent_dict[parent]
+                    sub_parser = sub_parsers.add_parser(subcmd.name, help=subcmd.help)
+                    self.__configure_parser(subcmd, sub_parser)
+
+        return main_parser
+
+    def __configure_parser(self, function, parser):
+
         if hasattr(function, "_arglist"):
             arglist = deepcopy(function._arglist)
             arglist.reverse()  # reverse the list, as user expects the upper most decorator be the first argument.
@@ -66,7 +82,7 @@ class PluginContainer(object):
                     optionlist = a.pop('option_strings', ())
                     parser.add_argument(*optionlist, **a)
             except TypeError as e:
-                raise PluginError("Invalid argument definition in @arg of %s" % func_name)
+                raise PluginError("Invalid argument definition in @arg of %s" % function)
 
         if hasattr(function, "_arg_group_list"):  # handle argument groups
             arggrouplist = deepcopy(function._arg_group_list)
@@ -82,7 +98,7 @@ class PluginContainer(object):
                         group.add_argument(*optionlist, **arg)
 
             except TypeError as e:
-                raise PluginError("Invalid argument definition in @arg_group of %s" % func_name)
+                raise PluginError("Invalid argument definition in @arg_group of %s" % function)
 
         if hasattr(function, "_arg_exclusive_list"):  # handle exclusive arguments
             argexclusivelist = deepcopy(function._arg_exclusive_list)
@@ -97,11 +113,9 @@ class PluginContainer(object):
                         group.add_argument(*optionlist, **arg)
 
             except TypeError as e:
-                raise PluginError("Invalid argument definition in @arg_exclusive of %s" % func_name)
+                raise PluginError("Invalid argument definition in @arg_exclusive of %s" % function)
 
-        return parser
-
-    def get_completer(self, func_name):
+    def get_completer(self, func_name):  # Todo: Fix completion for sub commands
         parser = self.get_func_parser(func_name)
         completer = GatCompleter(parser, self.controller.data_access_provider)
         return completer
@@ -115,7 +129,18 @@ class PluginContainer(object):
         return self.instance
 
     def execute_func(self, func_name, args):
-        function = self.clazz.cmds[func_name]
+        if func_name in self.clazz.subcmds:  # we check if the func is a parent of sub commands.
+            subcmds = self.clazz.subcmds[func_name]
+            arguments = args.split(" ")
+            subcmd = arguments[0]
+            if subcmd in subcmds:
+                function = subcmds[subcmd]
+            else:
+                # Todo: throw some exception here
+                pass
+        else:
+            function = self.clazz.cmds[func_name]
+
         command_parser = self.get_func_parser(func_name)
 
         def do_func(self, cmd, args):
@@ -230,13 +255,48 @@ def cmd(*d_args, **d_kwargs):
     except KeyError as e:
         raise PluginError("Argument 'description' to @cmd is missing in %s" % name)
 
-    if len(d_kwargs) > 2:
+    if d_kwargs.has_key("parent"):
+        is_parent = d_kwargs['parent']
+    else:
+        is_parent = False
+
+    if len(d_kwargs) > 3:
         raise PluginError("Unknown argument to @cmd in %s" % name)
 
     def wrapper(func):
         func.name = name
         func.description = description
         func._is_cmd = True
+        func._is_parent = is_parent
+        return func
+
+    return wrapper
+
+
+def subcmd(*d_args, **d_kwargs):
+    try:
+        name = d_kwargs['name']
+    except KeyError as e:
+        raise PluginError("Argument 'name' to @subcmd is missing")
+
+    try:
+        help = d_kwargs['help']
+    except KeyError as e:
+        raise PluginError("Argument 'help' to @subcmd is missing in %s" % name)
+
+    try:
+        parent = d_kwargs['parent']
+    except KeyError as e:
+        raise PluginError("Argument 'parent' to @subcmd is missing in %s" % name)
+
+    if len(d_kwargs) > 3:
+        raise PluginError("Unknown argument to @subcmd in %s" % name)
+
+    def wrapper(func):
+        func.name = name
+        func.help = help
+        func._is_subcmd = True
+        func._parent = parent
         return func
 
     return wrapper
@@ -262,6 +322,7 @@ def plugin(*d_args, **d_kwargs):
         cls.name = name
         cls.description = description
         cls.cmds = dict()
+        cls.subcmds = dict()
 
         for m in members:  # process every member function
             f = members[m]
@@ -273,6 +334,12 @@ def plugin(*d_args, **d_kwargs):
                 if cls.cmds.has_key(f.name):
                     raise PluginError("Function %s already defined" % f.name)
                 cls.cmds[f.name] = f
+            elif hasattr(f, '_is_subcmd') and hasattr(f, '_parent'):
+                parent = f._parent
+                if not cls.subcmds.has_key(parent):
+                    cls.subcmds[parent] = dict()
+                cls.subcmds[parent][f.name] = f
+
         return cls
 
     return wrapper

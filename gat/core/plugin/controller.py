@@ -18,7 +18,6 @@ class Controller(object):
         self._system_plugin_containers = dict()
         # dict that holds the commands together with the Plugin container holding the Plugin.
         self._plugin_containers = dict()
-        # Todo: move path to config file, add multipath support for custom plugins
         try:
             system_plugin_path = os.path.join(self.basedir, "gat/plugins")
             user_plugin_path = config.getfile("gat", "userplugins")

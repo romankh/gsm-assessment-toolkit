@@ -4,7 +4,7 @@ import pkgutil
 import sys
 
 from gat.core.common.data import DataAccessProvider
-from gat.core.plugin.interface import PluginError, PluginContainer, cmd, PluginBase, plugin, arg
+from gat.core.plugin.interface import PluginError, PluginContainer, cmd, PluginBase, plugin, arg, subcmd
 
 
 class Controller(object):
@@ -178,20 +178,28 @@ class Controller(object):
             for plugin in set(self.controller._plugin_containers.values()):  # get unique Plugin container
                 print_plugin_help(plugin)
 
-        @cmd(name='session_show', description='Show current session.')
+        @cmd(name='session', description='Manage sessions.', parent=True)
+        def session(self, args):
+            pass
+
+        @subcmd(name='show', help='Show current session.', parent="session")
         def session_show(self, args):
             self.printmsg("Default session.")
             self.printmsg("Sessions are not implemented yet.")
 
-        @cmd(name='session_create', description='Create a new session.')
+        @subcmd(name='create', help='Create a new session.', parent="session")
         def session_create(self, args):
             self.printmsg("Sessions are not implemented yet.")
 
-        @cmd(name='session_switch', description='Switch to an existing session.')
+        @subcmd(name='switch', help='Switch to an existing session.', parent="session")
         def session_switch(self, args):
             self.printmsg("Sessions are not implemented yet.")
 
-        @cmd(name='config_show', description='Show current configuration.')
+        @cmd(name='config', description='Manage configuration.', parent=True)
+        def config(self, args):
+            pass
+
+        @subcmd(name='show', help='Show current configuration.', parent="config")
         def config_show(self, args):
 
             sections = self._config_provider.getSections()
@@ -207,7 +215,7 @@ class Controller(object):
         @arg("section", action="store", type=str, help="Name of the section.")
         @arg("option", action="store", type=str, help="Name of the option.")
         @arg("value", action="store", type=str, help="Value to set.")
-        @cmd(name='config_set', description='Set the value of a config option.')
+        @subcmd(name='set', help='Set the value of a config option.', parent="config")
         def config_set(self, args):
             self._config_provider.set(args.section, args.option, args.value)
             if args.store:

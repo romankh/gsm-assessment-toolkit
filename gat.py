@@ -37,7 +37,7 @@ if __name__ == '__main__':
     ui_clazz_module, ui_clazz_name = ui_clazz_full.rsplit(".", 1)
     try:
         ui_clazz = getattr(importlib.import_module(ui_clazz_module), ui_clazz_name)
-    except:
+    except Exception as e:
         print "Failed to load UI."
         exit(1)
 

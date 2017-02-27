@@ -64,11 +64,13 @@ class PluginContainer(object):
         if func_name in self.clazz.subcmds:
             sub_parsers = main_parser.add_subparsers(help="commands")
             for entry in self.clazz.subcmds:
-                parent_dict = self.clazz.subcmds[entry]
-                for parent in parent_dict:
-                    subcmd = parent_dict[parent]
-                    sub_parser = sub_parsers.add_parser(subcmd.name, help=subcmd.help)
-                    self.__configure_parser(subcmd, sub_parser)
+                if entry == func_name:
+                    parent_dict = self.clazz.subcmds[entry]
+                    for parent in parent_dict:
+                        subcmd = parent_dict[parent]
+                        sub_parser = sub_parsers.add_parser(subcmd.name, help=subcmd.help)
+                        self.__configure_parser(subcmd, sub_parser)
+                    break
 
         return main_parser
 

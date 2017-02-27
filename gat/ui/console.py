@@ -234,8 +234,11 @@ class ConsoleUI(Controller):
                 cmd, args, foo = self.parseline(line)
                 if cmd == '':  # no command has been entered, complete against available commands.
                     compfunc = self._complete_default
-                elif cmd in self._plugin_containers:  # command is provided by a Plugin, get the completer from there.
-                    container = self._plugin_containers[cmd]
+                elif cmd in self._plugin_containers or cmd in self._system_plugin_containers:  # command is provided by a Plugin, get the completer from there.
+                    if cmd in self._plugin_containers:
+                        container = self._plugin_containers[cmd]
+                    else:
+                        container = self._system_plugin_containers[cmd]
                     try:
                         # we need to get the completer from the container
                         completer = container.get_completer(cmd)

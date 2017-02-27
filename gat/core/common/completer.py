@@ -64,6 +64,9 @@ class GatCompleter(object):
         self.option_display_str = []
 
     def complete(self, line):
+        return self.__complete(line, self.__parser)
+
+    def __complete(self, line, parser):
         comp_line = line
         comp_point = len(line)
         cword_prequote, cword_prefix, cword_suffix, comp_words, first_colon_pos = argcomplete.split_line(comp_line,
@@ -80,32 +83,45 @@ class GatCompleter(object):
         # is the last action completed ?
         last_action_finished = True
 
+        # are we completing a subcommand ?
+        is_sub_command_active = False
+
+        # the active sub command if any.
+        sub_command_active = None
+
         # if the last word starts with a '-', it was an option,
         # we need to check if this option takes an argument
-        if comp_words[-1].startswith(self.__parser.prefix_chars):
+        if comp_words[-1].startswith(parser.prefix_chars):
             last_action_finished = False
 
         # collect visisted actions
-        for action in self.__parser._actions:
-            for option in action.option_strings:
-                if option in line:
-                    visited_actions.append(action)
-                    # if last_action_finished is False, the last word was an option
-                    # then we check if the current option is this option
-                    # if so, we check if the option needs an argument
-                    if not last_action_finished and comp_words[-1] in action.option_strings:
-                        if action.choices is not None:  # last action was choices action, we return those choices
-                            for c in action.choices:
-                                if c.startswith(cword_prefix) or unicode(c).startswith(cword_prefix):
-                                    completions.append(c)
-                            return completions
-                        elif isinstance(action, _FilePathAction):
-                            file_completion_result = self.__data_access_provider.complete(cword_prefix)
-                            # print file_completion_result
-                            completions.extend(file_completion_result)
-                            return completions
-                        if action.type is None:
-                            last_action_finished = True
+        for action in parser._actions:
+            if not isinstance(action, argparse._SubParsersAction):
+                for option in action.option_strings:
+                    if option in line:
+                        visited_actions.append(action)
+                        # if last_action_finished is False, the last word was an option
+                        # then we check if the current option is this option
+                        # if so, we check if the option needs an argument
+                        if not last_action_finished and comp_words[-1] in action.option_strings:
+                            if action.choices is not None:  # last action was choices action, we return those choices
+                                for c in action.choices:
+                                    if c.startswith(cword_prefix) or unicode(c).startswith(cword_prefix):
+                                        completions.append(c)
+                                return completions
+                            elif isinstance(action, _FilePathAction):
+                                file_completion_result = self.__data_access_provider.complete(cword_prefix)
+                                # print file_completion_result
+                                completions.extend(file_completion_result)
+                                return completions
+                            if action.type is None:
+                                last_action_finished = True
+            else:
+                for subaction in action._get_subactions():
+                    if subaction.dest in line:
+                        visited_actions.append(subaction.dest)
+                        is_sub_command_active = True
+                        sub_command_active = subaction.dest
 
         if not last_action_finished:
             if action.choices is not None:
@@ -114,12 +130,25 @@ class GatCompleter(object):
                 return []
 
         # get options from parser
-        for action in self.__parser._actions:
-            if action not in visited_actions:
-                # ensure it is no subparser instance
-                if not isinstance(action, argparse._SubParsersAction):
-                    for option in action.option_strings:
-                        if option.startswith(cword_prefix):
-                            completions.append(option)
+        if not is_sub_command_active:
+            for action in parser._actions:
+                if action not in visited_actions:
+                    # ensure it is no subparser instance
+                    if not isinstance(action, argparse._SubParsersAction):
+                        for option in action.option_strings:
+                            if option.startswith(cword_prefix):
+                                completions.append(option)
+                    else:
+                        for subaction in action._get_subactions():
+                            if subaction.dest.startswith(cword_prefix):
+                                completions.append(subaction.dest)
+        else:
+            subparsers = parser._subparsers
+            for action in subparsers._actions:
+                if isinstance(action, argparse._SubParsersAction):
+                    for choice in action.choices:
+                        if choice == sub_command_active:
+                            subparser = action.choices[choice]
+                            completions += self.__complete(line, subparser)
 
         return completions

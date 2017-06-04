@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import readline
 import string
 
@@ -68,9 +69,8 @@ class ConsoleUI(Controller):
         readline.set_completer_delims(readline.get_completer_delims().replace('-', ''))  # remove "-" because options
         readline.set_completion_display_matches_hook(self.rl_display_hook)  # set our display hook
         # read history file if exists
-        historyfile = self.config.getfile("gat", "historyfile")
-        if historyfile is not None:
-            readline.read_history_file(historyfile)
+        historyfile = self.config.getfile("gat", "historyfile", True)
+        readline.read_history_file(historyfile)
 
         try:
             # print the intro after startup, if config entry show_intro is True.

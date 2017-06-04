@@ -60,10 +60,13 @@ class ConfigProvider(object):
     def getboolean(self, section, option):
         return self.__config.getboolean(section, option)
 
-    def getfile(self, section, option):
+    def getfile(self, section, option, create=False):
         file = expanduser(self.get(section, option))
         if not os.path.isfile(file) and not os.path.isdir(file):
-            return None
+            if create:
+                open(file, 'w').close()
+            else:
+                return None
         return file
 
     def set(self, section, option, value):

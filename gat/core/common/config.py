@@ -27,7 +27,7 @@ class ConfigProvider(object):
         if not os.path.isdir(config_path):
             os.makedirs(config_path, 0755)
             if not os.path.isfile(config_path):
-                shutil.copy('core/misc/default.conf', self.__config_file_path)
+                shutil.copy('gat/core/misc/default.conf', self.__config_file_path)
 
         # read config
         self.__config.read(self.__config_file_path)

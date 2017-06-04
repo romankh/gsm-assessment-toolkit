@@ -6,6 +6,7 @@ import os
 import grgsm
 
 from gat.core.plugin.interface import PluginBase, plugin, cmd, arg, arg_group, PluginError
+from gat.core.plugin.silencer import Silencer
 
 
 @plugin(name='Scan Plugin', description='Scan Plugin provides methods for scanning a GSM band for active BTS')
@@ -53,61 +54,47 @@ class ScanPlugin(PluginBase):
 
             while current_freq < stop_freq:
                 # silence rtl_sdr output:
-                # open 2 fds
-                null_fds = [os.open(os.devnull, os.O_RDWR) for x in xrange(2)]
-                # save the current file descriptors to a tuple
-                save = os.dup(1), os.dup(2)
-                # put /dev/null fds on 1 and 2
-                os.dup2(null_fds[0], 1)
-                os.dup2(null_fds[1], 2)
+                with Silencer():
+                    # instantiate scanner and processor
+                    scanner = grgsm_scanner.wideband_scanner(rec_len=6 - speed,
+                                                             sample_rate=sample_rate,
+                                                             carrier_frequency=current_freq,
+                                                             ppm=ppm, args="")
+                    # start recording
+                    scanner.start()
+                    scanner.wait()
+                    scanner.stop()
 
-                # instantiate scanner and processor
-                scanner = grgsm_scanner.wideband_scanner(rec_len=6 - speed,
-                                                         sample_rate=sample_rate,
-                                                         carrier_frequency=current_freq,
-                                                         ppm=ppm, args="")
-                # start recording
-                scanner.start()
-                scanner.wait()
-                scanner.stop()
+                    freq_offsets = numpy.fft.ifftshift(
+                        numpy.array(
+                            range(int(-numpy.floor(channels_num / 2)), int(numpy.floor((channels_num + 1) / 2)))) * 2e5)
+                    detected_c0_channels = scanner.gsm_extract_system_info.get_chans()
 
-                freq_offsets = numpy.fft.ifftshift(
-                    numpy.array(
-                        range(int(-numpy.floor(channels_num / 2)), int(numpy.floor((channels_num + 1) / 2)))) * 2e5)
-                detected_c0_channels = scanner.gsm_extract_system_info.get_chans()
+                    found_list = []
 
-                found_list = []
+                    if detected_c0_channels:
+                        chans = numpy.array(scanner.gsm_extract_system_info.get_chans())
+                        found_freqs = current_freq + freq_offsets[(chans)]
 
-                if detected_c0_channels:
-                    chans = numpy.array(scanner.gsm_extract_system_info.get_chans())
-                    found_freqs = current_freq + freq_offsets[(chans)]
+                        cell_ids = numpy.array(scanner.gsm_extract_system_info.get_cell_id())
+                        lacs = numpy.array(scanner.gsm_extract_system_info.get_lac())
+                        mccs = numpy.array(scanner.gsm_extract_system_info.get_mcc())
+                        mncs = numpy.array(scanner.gsm_extract_system_info.get_mnc())
+                        ccch_confs = numpy.array(scanner.gsm_extract_system_info.get_ccch_conf())
+                        powers = numpy.array(scanner.gsm_extract_system_info.get_pwrs())
 
-                    cell_ids = numpy.array(scanner.gsm_extract_system_info.get_cell_id())
-                    lacs = numpy.array(scanner.gsm_extract_system_info.get_lac())
-                    mccs = numpy.array(scanner.gsm_extract_system_info.get_mcc())
-                    mncs = numpy.array(scanner.gsm_extract_system_info.get_mnc())
-                    ccch_confs = numpy.array(scanner.gsm_extract_system_info.get_ccch_conf())
-                    powers = numpy.array(scanner.gsm_extract_system_info.get_pwrs())
+                        for i in range(0, len(chans)):
+                            cell_arfcn_list = scanner.gsm_extract_system_info.get_cell_arfcns(chans[i])
+                            neighbour_list = scanner.gsm_extract_system_info.get_neighbours(chans[i])
 
-                    for i in range(0, len(chans)):
-                        cell_arfcn_list = scanner.gsm_extract_system_info.get_cell_arfcns(chans[i])
-                        neighbour_list = scanner.gsm_extract_system_info.get_neighbours(chans[i])
+                            info = grgsm_scanner.channel_info(grgsm.arfcn.downlink2arfcn(found_freqs[i], band),
+                                                              found_freqs[i],
+                                                              cell_ids[i], lacs[i], mccs[i], mncs[i], ccch_confs[i],
+                                                              powers[i],
+                                                              neighbour_list, cell_arfcn_list)
+                            found_list.append(info)
 
-                        info = grgsm_scanner.channel_info(grgsm.arfcn.downlink2arfcn(found_freqs[i], band),
-                                                          found_freqs[i],
-                                                          cell_ids[i], lacs[i], mccs[i], mncs[i], ccch_confs[i],
-                                                          powers[i],
-                                                          neighbour_list, cell_arfcn_list)
-                        found_list.append(info)
-
-                scanner = None
-
-                # restore file descriptors so we can print the results
-                os.dup2(save[0], 1)
-                os.dup2(save[1], 2)
-                # close the temporary fds
-                os.close(null_fds[0])
-                os.close(null_fds[1])
+                    scanner = None
 
                 for info in sorted(found_list):
                     self.printmsg(info.__repr__())

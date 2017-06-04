@@ -219,3 +219,7 @@ class Controller(object):
             self._config_provider.set(args.section, args.option, args.value)
             if args.store:
                 self._config_provider.persist()
+
+        @subcmd(name='save', help='Saves the current state of config to user\'s config file.', parent="config")
+        def config_save(self, args):
+            self._config_provider.persist()

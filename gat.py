@@ -13,8 +13,8 @@ if __name__ == '__main__':
 
     """
     Install:
-        - argcomplete per deb
-        - pip install requests
+        - sudo apt-get install python-argcomplete
+        - sudo pip install requests
     """
     # change to base directory
     filepath = os.path.realpath(__file__)
@@ -38,7 +38,7 @@ if __name__ == '__main__':
     try:
         ui_clazz = getattr(importlib.import_module(ui_clazz_module), ui_clazz_name)
     except Exception as e:
-        print "Failed to load UI."
+        print "Failed to load UI: %s" % e.message
         exit(1)
 
     # instantiate UI class and start it.

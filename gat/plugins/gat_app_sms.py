@@ -10,7 +10,8 @@ from gat.core.plugin.interface import plugin, arg, PluginBase, cmd
 @plugin(name='GAT-App SMS', description='SMS sending.')
 class GatAppSmsPlugin(PluginBase):
     @arg('recipient', action="store", type=str, help="Phone number of recipient.")
-    @arg('-t', action="store", dest="smstype", choices=(SmsType.get_names()), help="Type of message to send.")
+    @arg('-t', action="store", dest="smstype", choices=(SmsType.get_names()), help="Type of message to send.",
+         default="SMS")
     @arg('-c', action="store", dest="text", type=str, help="Text to send.")
     @arg('-w', '--wait-for-response', action="store", dest="wait", type=int, default=5,
          help="Wait n seconds for a response.")

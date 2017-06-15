@@ -2,6 +2,7 @@
 import imp
 import numpy
 import os
+import subprocess
 
 import grgsm
 
@@ -40,6 +41,15 @@ class ScanPlugin(PluginBase):
             sample_rate = self._config_provider.getint("rtl_sdr", "sample_rate")
         if gain is None:
             gain = self._config_provider.getint("rtl_sdr", "gain")
+
+        if band == 'DCS1800' or band == 'PCS1900':
+            shmmni = self.get_shmmni()
+            if shmmni < 32000:
+                msg = "Unsufficient shared memory segments.\n"
+                msg += "For scanning DCS1800 or PCS1900 you need to increase the value, i.e. using the following command:\n\n"
+                msg += "sudo sysctl kernel.shmmni=32000"
+                self.printmsg(msg)
+                return
 
         channels_num = int(sample_rate / 0.2e6)
 
@@ -100,3 +110,10 @@ class ScanPlugin(PluginBase):
                     self.printmsg(info.__repr__())
 
                 current_freq += channels_num * 0.2e6
+
+    def get_shmmni(self):
+        result = subprocess.check_output(["sysctl kernel.shmmni"], shell=True, stderr=subprocess.STDOUT)
+        if result.startswith("kernel.shmmni"):
+            return int(result.strip("kernel.shmmni = "))
+        else:
+            return None

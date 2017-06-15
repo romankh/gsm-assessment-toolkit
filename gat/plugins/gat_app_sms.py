@@ -44,6 +44,11 @@ class GatAppSmsPlugin(PluginBase):
                         response = response_queue.get()
                         response_msg = response.strip('\n').split("#")
 
+                        if response.startswith("Connection to GAT-App failed"):
+                            self.printmsg("Connection to GAT-App failed")
+                            msg_counter += 1
+                            break
+
                         response_type = response_msg[0]
                         response_msisdn = response_msg[1]
 
@@ -73,6 +78,6 @@ class GatAppSmsPlugin(PluginBase):
                 if msg_counter == 0:
                     self.printmsg("No response from GAT-App")
         except:
-            pass
+            self.printmsg("Unexpected error.")
         finally:
             adapter.unregister_read_callback()

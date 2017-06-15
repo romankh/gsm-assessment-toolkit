@@ -28,8 +28,5 @@ There is no install script (yet), so the following steps are necessary:
 - TmsiPlugin: Extract TMSIs (and some IMSIs) from a capture.
 - TmsiIdentificationPlugin: Identification of the TMSI of a subscriber.
 - WiresharkPlugin: Starts a pre-configured wireshark for sniffing gsmtap traffic.
-
-Coming (more or less) soon:
-
-- AnalyzationPlugin: Analyze different aspects of a capture (e.g. Immediate Assignments, Cipher Mode Commands, used encryption, stats, ...)
+- AnalysisPlugin: Analyze different aspects of a capture (e.g. Immediate Assignments, Cipher Mode Commands, used encryption, stats, ...).
 

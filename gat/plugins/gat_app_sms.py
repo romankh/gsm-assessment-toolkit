@@ -42,24 +42,27 @@ class GatAppSmsPlugin(PluginBase):
                 while (now - start) < args.wait:
                     while not response_queue.empty():
                         response = response_queue.get()
-                        response_msg = response.strip('\n').split("#")
-
                         if response.startswith("Connection to GAT-App failed"):
                             self.printmsg("Connection to GAT-App failed")
                             msg_counter += 1
                             break
 
+                        response_msg = self.parse_response(response)
+
                         response_type = response_msg[0]
                         response_msisdn = response_msg[1]
+                        response_status = response_msg[2]
 
-                        if response_type == "sms-status":
-                            response_status = response_msg[2]
+                        if response_type == "sms-send":
                             if response_status != "OK":
                                 self.printmsg("Sending to %s failed" % response_msisdn)
                             else:
                                 self.printmsg("SMS message to %s was sent." % response_msisdn)
-                        elif response_type == "sms-rcv":
-                            self.printmsg("Response from %s received." % response_msisdn)
+                        elif response_type == "sms-delivery":
+                            if response_status != "OK":
+                                self.printmsg("Delivery to %s failed." % response_msisdn)
+                            else:
+                                self.printmsg("Response from %s received." % response_msisdn)
                         else:
                             self.printmsg("Got unexpected response: %s" % response)
 
@@ -81,3 +84,10 @@ class GatAppSmsPlugin(PluginBase):
             self.printmsg("Unexpected error.")
         finally:
             adapter.unregister_read_callback()
+
+    def parse_response(self, response):
+        response_msg = response.strip('\n').split("#")
+        response_type = response_msg[0]
+        response_msisdn = response_msg[1]
+        response_status = response_msg[2]
+        return (response_type, response_msisdn, response_status)

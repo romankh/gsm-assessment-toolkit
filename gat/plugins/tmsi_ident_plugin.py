@@ -120,13 +120,13 @@ class TmsiIdentificationPlugin(PluginBase):
                                 self.printmsg("Failed to connect to GAT app")
                                 break
 
-                            response_msg = response.strip('\n').split("#")
+                            response_msg = self.parse_response(response)
 
                             response_type = response_msg[0]
                             response_msisdn = response_msg[1]
+                            response_status = response_msg[2]
 
                             if response_type == "sms-status":
-                                response_status = response_msg[2]
                                 if response_status != "OK":
                                     self.printmsg("Sending to %s failed" % response_msisdn)
                                 else:
@@ -136,6 +136,14 @@ class TmsiIdentificationPlugin(PluginBase):
                                 # recipient got our message
                                 response_received = True
                                 break
+
+                            if response_type == "sms-send" and response_status != "OK":
+                                self.printmsg("Sending to %s failed" % response_msisdn)
+                            elif response_type == "sms-delivery":
+                                if response_status != "OK":
+                                    self.printmsg("Delivery to %s failed." % response_msisdn)
+                                else:
+                                    self.printmsg("Response from %s received." % response_msisdn)
 
                         time.sleep(0.2)  # ToDo: No busy waiting !
                         now = time.time()
@@ -190,6 +198,13 @@ class TmsiIdentificationPlugin(PluginBase):
                 tmsi_set.add(key)
         os.remove("tmsicount.txt")
         return tmsi_set
+
+    def parse_response(self, response):
+        response_msg = response.strip('\n').split("#")
+        response_type = response_msg[0]
+        response_msisdn = response_msg[1]
+        response_status = response_msg[2]
+        return (response_type, response_msisdn, response_status)
 
 
 class TmsiLiveCapture(gr.top_block):

@@ -15,7 +15,7 @@ class GatAppSmsPlugin(PluginBase):
     @arg('-c', action="store", dest="text", type=str, help="Text to send.")
     @arg('-w', '--wait-for-response', action="store", dest="wait", type=int, default=5,
          help="Wait n seconds for a response.")
-    @cmd(name='sendsms', description='Send different types of SMS using GAT-App.')
+    @cmd(name='sms', description='Send different types of SMS using GAT-App.')
     def send(self, args):
         response_queue = Queue.Queue()
 

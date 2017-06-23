@@ -2,7 +2,7 @@
 import grgsm
 from gnuradio import gr
 
-from gat.core.plugin.interface import plugin, PluginBase, cmd, arg, subcmd
+from core.plugin.interface import plugin, PluginBase, cmd, arg, subcmd
 
 
 @plugin(name="Burstfile Plugin", description="Provides functionality for filtering burst files")

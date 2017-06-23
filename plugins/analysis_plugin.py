@@ -2,7 +2,7 @@
 import grgsm
 from gnuradio import gr
 
-from gat.core.plugin.interface import plugin, PluginBase, arg, cmd
+from core.plugin.interface import plugin, PluginBase, arg, cmd
 
 channel_modes = ['BCCH_SDCCH4', 'SDCCH8']
 

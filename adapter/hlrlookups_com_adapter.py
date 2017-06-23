@@ -1,6 +1,6 @@
 import requests
 
-from gat.core.adapterinterfaces.hlr import HlrLookupAdapter, HlrResult
+from core.adapterinterfaces.hlr import HlrLookupAdapter, HlrResult
 
 
 class HlrLookupError(Exception):

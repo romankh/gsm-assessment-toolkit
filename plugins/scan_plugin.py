@@ -6,8 +6,8 @@ import subprocess
 
 import grgsm
 
-from gat.core.plugin.interface import PluginBase, plugin, cmd, arg, arg_group, PluginError
-from gat.core.plugin.silencer import Silencer
+from core.plugin.interface import PluginBase, plugin, cmd, arg, arg_group, PluginError
+from core.plugin.silencer import Silencer
 
 
 @plugin(name='Scan Plugin', description='Scan Plugin provides methods for scanning a GSM band for active BTS')

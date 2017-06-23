@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import subprocess
 
-from gat.core.plugin.interface import plugin, PluginBase, cmd
+from core.plugin.interface import plugin, PluginBase, cmd
 
 
 @plugin(name="Wireshark", description="Wireshark related commands.")

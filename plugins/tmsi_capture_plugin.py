@@ -5,7 +5,7 @@ import grgsm
 from gnuradio import blocks
 from gnuradio import gr
 
-from gat.core.plugin.interface import plugin, PluginBase, cmd, arg_group, arg, arg_exclusive, PluginError
+from core.plugin.interface import plugin, PluginBase, cmd, arg_group, arg, arg_exclusive, PluginError
 
 
 @plugin(name='TMSI Plugin', description='Provides TMSI capturing')

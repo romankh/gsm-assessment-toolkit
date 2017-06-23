@@ -3,7 +3,7 @@ import argcomplete
 import argparse
 import shlex
 
-from gat.core.common.parser import _FilePathAction
+from core.common.parser import _FilePathAction
 
 
 class ArgcompleteException(Exception):

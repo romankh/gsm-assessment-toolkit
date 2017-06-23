@@ -6,9 +6,9 @@ from subprocess import check_output
 import grgsm
 from gnuradio import gr
 
-from gat.adapter.kraken_adapter import KrakenA51ReconstructorAdapter
-from gat.core.adapterinterfaces.a5 import A5BurstSet, A5ReconstructionAdapter
-from gat.core.plugin.interface import plugin, PluginBase, cmd, arg, arg_exclusive, arg_group
+from adapter.kraken_adapter import KrakenA51ReconstructorAdapter
+from core.adapterinterfaces.a5 import A5BurstSet, A5ReconstructionAdapter
+from core.plugin.interface import plugin, PluginBase, cmd, arg, arg_exclusive, arg_group
 
 
 @plugin(name='A5/1 Kraken TMTO Plugin', description='Kraken ftw')

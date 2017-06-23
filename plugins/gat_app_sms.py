@@ -2,9 +2,9 @@
 import Queue
 import time
 
-from gat.adapter.gat_app_sms_adapter import GatAppSmsAdapter
-from gat.core.adapterinterfaces.types import SmsType
-from gat.core.plugin.interface import plugin, arg, PluginBase, cmd
+from adapter.gat_app_sms_adapter import GatAppSmsAdapter
+from core.adapterinterfaces.types import SmsType
+from core.plugin.interface import plugin, arg, PluginBase, cmd
 
 
 @plugin(name='GAT-App SMS', description='SMS sending.')

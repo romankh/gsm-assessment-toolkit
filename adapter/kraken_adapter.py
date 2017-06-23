@@ -2,7 +2,7 @@
 import socket
 import subprocess
 
-from gat.core.adapterinterfaces.a5 import A5ReconstructionAdapter
+from core.adapterinterfaces.a5 import A5ReconstructionAdapter
 
 
 class KrakenA51ReconstructorAdapter(A5ReconstructionAdapter):

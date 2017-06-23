@@ -9,10 +9,10 @@ import osmosdr
 from gnuradio import blocks
 from gnuradio import gr
 
-from gat.adapter.gat_app_sms_adapter import GatAppSmsAdapter
-from gat.core.adapterinterfaces.types import SmsType
-from gat.core.plugin.interface import plugin, PluginBase, cmd, arg_group, arg, arg_exclusive
-from gat.core.plugin.silencer import Silencer
+from adapter.gat_app_sms_adapter import GatAppSmsAdapter
+from core.adapterinterfaces.types import SmsType
+from core.plugin.interface import plugin, PluginBase, cmd, arg_group, arg, arg_exclusive
+from core.plugin.silencer import Silencer
 
 
 @plugin(name='TMSI Identification Plugin', description='Provides TMSI-MSISDN correlation')

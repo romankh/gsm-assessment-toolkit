@@ -3,8 +3,8 @@ import os
 import pkgutil
 import sys
 
-from gat.core.common.data import DataAccessProvider
-from gat.core.plugin.interface import PluginError, PluginContainer, cmd, PluginBase, plugin, arg, subcmd
+from core.common.data import DataAccessProvider
+from core.plugin.interface import PluginError, PluginContainer, cmd, PluginBase, plugin, arg, subcmd
 
 
 class Controller(object):
@@ -19,7 +19,7 @@ class Controller(object):
         # dict that holds the commands together with the Plugin container holding the Plugin.
         self._plugin_containers = dict()
         try:
-            system_plugin_path = os.path.join(self.basedir, "gat/plugins")
+            system_plugin_path = os.path.join(self.basedir, "plugins")
             user_plugin_path = config.getfile("gat", "userplugins")
             self._load_plugins(system_plugin_path, user_plugin_path)
         except PluginError as e:
@@ -44,7 +44,7 @@ class Controller(object):
         def __load_modules(mods, is_user):
             prefix = ""
             if not is_user:
-                prefix = "gat.plugins."
+                prefix = "plugins."
 
             for loader, mod_name, ispkg in mods:
                 if mod_name not in sys.modules:  # Ensure that module isn't already loaded

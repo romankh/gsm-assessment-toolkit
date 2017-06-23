@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 
-from gat.core.plugin.interface import PluginError
+from core.plugin.interface import PluginError
 
 
 # Todo: Implement Session Management

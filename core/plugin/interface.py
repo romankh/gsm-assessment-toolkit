@@ -4,8 +4,8 @@ import shlex
 import sys
 from copy import deepcopy
 
-from gat.core.common.completer import GatCompleter
-from gat.core.common.parser import ConsoleArgumentParser, GatHelpFormatter, ArgumentParserError, HelpActionCall
+from core.common.completer import GatCompleter
+from core.common.parser import ConsoleArgumentParser, GatHelpFormatter, ArgumentParserError, HelpActionCall
 
 
 class PluginBase(object):

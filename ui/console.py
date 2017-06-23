@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-import os
 import readline
 import string
 
-from gat.core.plugin.controller import Controller
-from gat.core.plugin.interface import PluginError
+from core.plugin.controller import Controller
+from core.plugin.interface import PluginError
 
 __all__ = ["Cmd"]
 

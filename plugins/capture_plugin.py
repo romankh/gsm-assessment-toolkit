@@ -10,7 +10,7 @@ import pmt
 from gnuradio import blocks
 from gnuradio import gr
 
-from gat.core.plugin.interface import plugin, arg_group, arg, PluginBase, arg_exclusive, cmd
+from core.plugin.interface import plugin, arg_group, arg, PluginBase, arg_exclusive, cmd
 
 
 @plugin(name='Capture Plugin', description='Captures transmissions.')

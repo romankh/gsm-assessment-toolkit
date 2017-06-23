@@ -2,8 +2,8 @@
 import socket
 import thread
 
-from gat.core.adapterinterfaces.sms import SmsAdapter
-from gat.core.adapterinterfaces.types import SmsType
+from core.adapterinterfaces.sms import SmsAdapter
+from core.adapterinterfaces.types import SmsType
 
 
 class GatAppSmsAdapter(SmsAdapter):

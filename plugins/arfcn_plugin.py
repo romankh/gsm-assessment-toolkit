@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import grgsm
 
-from gat.core.plugin.interface import plugin, arg, cmd, PluginBase
+from core.plugin.interface import plugin, arg, cmd, PluginBase
 
 
 @plugin(name='ARFCN Calculator', description='Prints frequency information for an ARFCN.')

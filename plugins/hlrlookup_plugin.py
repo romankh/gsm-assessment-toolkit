@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from gat.adapter.hlrlookups_com_adapter import HlrLookupsComAdapter, HlrLookupError
-from gat.core.plugin.interface import plugin, PluginBase, arg, cmd
+from adapter.hlrlookups_com_adapter import HlrLookupsComAdapter, HlrLookupError
+from core.plugin.interface import plugin, PluginBase, arg, cmd
 
 
 @plugin(name='HLR Lookup', description='Performs HLR lookup.')

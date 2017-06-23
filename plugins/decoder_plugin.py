@@ -5,7 +5,7 @@ import os
 
 import grgsm
 
-from gat.core.plugin.interface import plugin, PluginBase, cmd, arg, arg_exclusive, arg_group
+from core.plugin.interface import plugin, PluginBase, cmd, arg, arg_exclusive, arg_group
 
 
 @plugin(name='Decoder Plugin', description='Decodes Control and Traffic channels.')

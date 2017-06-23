@@ -4,7 +4,7 @@ import argparse
 import importlib
 import os
 
-from gat.core.common.config import ConfigProvider
+from core.common.config import ConfigProvider
 
 if __name__ == '__main__':
     """

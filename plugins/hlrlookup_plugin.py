@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 from adapter.hlrlookups_com_adapter import HlrLookupsComAdapter, HlrLookupError
-from core.plugin.interface import plugin, PluginBase, arg, cmd
+from core.plugin.interface import plugin, PluginBase, arg, cmd, subcmd
 
 
 @plugin(name='HLR Lookup', description='Performs HLR lookup.')
 class HlrlookupPlugin(PluginBase):
+    @cmd(name="hlr", description="Lookup a phone number in HLR using hlr-lookup.com.", parent=True)
+    def hlr(self, args):
+        pass
+
     @arg('msisdn', action="store", help="MSISDN to query (i.e. +43123456789).")
-    @cmd(name='hlr_lookup', description='Lookup a phone number in HLR using hlr-lookup.com.')
+    @subcmd(name="lookup", help="Lookup a phone number in HLR using hlr-lookup.com.", parent="hlr")
     def hlr_lookup(self, args):
         """
         Perform a lookup at hlrlookups.com
@@ -31,7 +35,7 @@ class HlrlookupPlugin(PluginBase):
             self.printmsg("ERROR: HLR lookup of %s failed" % args.msisdn)
             self.printmsg("Message was: %s" % e.message)
 
-    @cmd(name='hlr_balance', description='Lookup your account balance at hlr-lookup.com.')
+    @subcmd(name='balance', help='Lookup your account balance at hlr-lookup.com.', parent="hlr")
     def hlr_balance(self, args):
         """
         Get the current balance in EURO from hlrlookups.com

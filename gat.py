@@ -10,12 +10,6 @@ if __name__ == '__main__':
     """
     Instantiate and start the console.
     """
-
-    """
-    Install:
-        - sudo apt-get install python-argcomplete
-        - sudo pip install requests
-    """
     # change to base directory
     filepath = os.path.realpath(__file__)
     basedir = os.path.dirname(filepath)

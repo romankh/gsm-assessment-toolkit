@@ -4,29 +4,17 @@ GAT is an evaluation framework for assessing security-related aspects of mobile 
 
 The framework mainly relies on [gr-gsm](https://github.com/ptrkrysik/gr-gsm) for the processing of GSM-related information.
 
+More information can be found in the [wiki](https://github.com/romankh/gsm-assessment-toolkit/wiki)
 
-## Installation
+## Feature List
 
-There is no install script (yet), so the following steps are necessary:
-
-- A working [gr-gsm](https://github.com/ptrkrysik/gr-gsm) installation
-- Install Python argcomplete (sudo apt-get install python-argcomplete for example)
-- Install Python requests (sudo pip install requests)
-- Checkout master branch
-- Make gat.py executable
-- Execute gat.py
-
-## Plugin List
-
-- A51ReconstructionPlugin: Performs a reconstruction of A5/1 session keys using Kraken
-- ArfcnPlugin: Provides information and conversion between ARFCN and frequencies
-- CapturePlugin: Capturing transmissions with RTL-SDR
-- DecoderPlugin: Decoding GSM transmissions
-- GatAppSmsPlugin: Sending SMS (regular, silent or other) via [GAT-App](https://github.com/romankh/gat-app)
-- HlrlookupPlugin: Performing HLR lookups. Currently only hlrlookups.com supported.
-- ScanPlugin: Scanning a GSM band for base stations.
-- TmsiPlugin: Extract TMSIs (and some IMSIs) from a capture.
-- TmsiIdentificationPlugin: Identification of the TMSI of a subscriber.
-- WiresharkPlugin: Starts a pre-configured wireshark for sniffing gsmtap traffic.
-- AnalysisPlugin: Analyze different aspects of a capture (e.g. Immediate Assignments, Cipher Mode Commands, used encryption, stats, ...).
-
+- Capturing transmissions, currently only using RTL-SDR. Support for UHD coming soon.
+- Scanning for base stations, currently only using RTL-SDR. Support for UHD coming soon.
+- Decoding captured transmissions (Control channels, voice channels).
+- A5/1 key reconstruction using Kraken.
+- Sending SMS (regular, silent and others) via [GAT-App](https://github.com/romankh/gat-app)
+- Performing HLR lookups. Currently only hlrlookups.com supported.
+- TMSI (and some IMSIs) sniffing / extraction
+- Subscriber identification (TMSI - MSISDN correlation)
+- Analysis of captured transmissions (e.g. Immediate Assignments, Cipher Mode Commands, used encryption). More coming soon.
+- Utilities: Starting a preconfigured Wireshark, info about and conversion of ARFCN and frequencies, manipulation of burst-files.

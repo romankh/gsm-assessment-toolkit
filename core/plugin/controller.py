@@ -15,6 +15,7 @@ class Controller(object):
         self.config = config
         self.data_access_provider = DataAccessProvider(self.config)
         self.basedir = basedir
+        self._help = None
         self._system_plugin_containers = dict()
         # dict that holds the commands together with the Plugin container holding the Plugin.
         self._plugin_containers = dict()
@@ -157,25 +158,55 @@ class Controller(object):
             """
             _indent = " " * 2
 
+            class HelpContainer(object):
+                def __init__(self, sysentries, pluginentries):
+                    self.sysentries = sysentries
+                    self.pluginentries = pluginentries
+
+            class HelpEntry(object):
+                def __init__(self, commandname, commandinfo, pluginname):
+                    self.commandname = commandname
+                    self.commandinfo = commandinfo
+                    self.pluginname = pluginname
+
+            if self.controller._help is None:
+                sysentries = []
+                pluginentries = []
+
+                for plugin in set(self.controller._system_plugin_containers.values()):
+                    pluginname = plugin.get_plugin_name()
+                    cmds = plugin.get_all_func()
+                    for cmd in cmds:
+                        entry = HelpEntry(cmd, plugin.get_func_description(cmd), pluginname)
+                        sysentries.append(entry)
+
+                for plugin in set(self.controller._plugin_containers.values()):
+                    pluginname = plugin.get_plugin_name()
+                    cmds = plugin.get_all_func()
+                    for cmd in cmds:
+                        entry = HelpEntry(cmd, plugin.get_func_description(cmd), pluginname)
+                        pluginentries.append(entry)
+
+                sysentries = sorted(sysentries, key=lambda entry: entry.commandname)
+                pluginentries = sorted(pluginentries, key=lambda entry: entry.commandname)
+
+                self.controller._help = HelpContainer(sysentries, pluginentries)
+
             self.printmsg("The following list gives an overview of the available commands.")
             self.printmsg("For a command specific help type '<command> -h'." + "\n\n")
 
-            def print_plugin_help(plugin):
-                plugin_header = plugin.get_plugin_name()
-                if plugin.get_plugin_description() is not None:
-                    plugin_header += ": " + plugin.get_plugin_description()
-                self.printmsg(plugin_header)
+            def print_help_line(entry):
+                self.printmsg(entry.commandname + ": " + entry.commandinfo)
 
-                cmds = plugin.get_all_func()
-                for cmd in cmds:
-                    self.printmsg(_indent + cmd + ": " + plugin.get_func_description(cmd))
-                self.printmsg('\n')
+            self.printmsg("System:")
+            for entry in self.controller._help.sysentries:
+                print_help_line(entry)
 
-            for plugin in set(self.controller._system_plugin_containers.values()):  # get unique Plugin container
-                print_plugin_help(plugin)
+            self.printmsg("\nPlugin:")
+            for entry in self.controller._help.pluginentries:
+                print_help_line(entry)
 
-            for plugin in set(self.controller._plugin_containers.values()):  # get unique Plugin container
-                print_plugin_help(plugin)
+            self.printmsg("\n")
 
         @cmd(name='session', description='Manage sessions.', parent=True)
         def session(self, args):

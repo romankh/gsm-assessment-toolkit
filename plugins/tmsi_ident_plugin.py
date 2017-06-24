@@ -37,11 +37,8 @@ class TmsiIdentificationPlugin(PluginBase):
     @arg("-b", action="store", dest="band", choices=(grgsm.arfcn.get_bands()), help="GSM band of the ARFCN.")
     @arg("-t", action="store", dest="timeslot", type=int, help="Timeslot of the CCCH.", default=0)
     @arg('msisdn', action="store", help="MSISDN to correlate (i.e. +43123456789).")
-    @cmd(name="tmsi_correlation", description="TMSI capturing.")
+    @cmd(name="tmsi_correlation", description="Perform TMSI-MSISDN correlation.")
     def tmsi_correlation(self, args):
-
-        # tmsi_correlation -n 1 -b P-GSM -a 13 067762475917
-        # verbose = args.verbose
         mode = args.mode
         freq = args.freq
         arfcn = args.arfcn

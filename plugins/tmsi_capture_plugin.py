@@ -2,9 +2,8 @@
 import os
 
 import grgsm
-from gnuradio import blocks
-from gnuradio import gr
 
+from adapter.grgsm.tmsi import TmsiCapture
 from core.plugin.interface import plugin, PluginBase, cmd, arg_group, arg, arg_exclusive, PluginError
 
 
@@ -102,78 +101,3 @@ class TmsiPlugin(PluginBase):
                     self.printmsg("{} ({} times)".format(key, imsis[key]))
 
         os.remove("tmsicount.txt")
-
-
-class TmsiCapture(gr.top_block):
-    def __init__(self, timeslot=0, chan_mode='BCCH',
-                 burst_file=None,
-                 cfile=None, fc=None, samp_rate=2e6, ppm=0):
-
-        gr.top_block.__init__(self, "gr-gsm TMSI Capture")
-
-        ##################################################
-        # Parameters
-        ##################################################
-        self.timeslot = timeslot
-        self.chan_mode = chan_mode
-        self.burst_file = burst_file
-        self.cfile = cfile
-        self.fc = fc
-        self.samp_rate = samp_rate
-        self.ppm = ppm
-
-        ##################################################
-        # Blocks
-        ##################################################
-
-        if self.burst_file:
-            self.burst_file_source = grgsm.burst_file_source(burst_file)
-        elif self.cfile:
-            self.file_source = blocks.file_source(gr.sizeof_gr_complex * 1, self.cfile, False)
-            self.receiver = grgsm.receiver(4, ([0]), ([]))
-            if self.fc is not None:
-                self.input_adapter = grgsm.gsm_input(ppm=ppm, osr=4, fc=self.fc, samp_rate_in=samp_rate)
-                self.offset_control = grgsm.clock_offset_control(self.fc, self.samp_rate)
-            else:
-                self.input_adapter = grgsm.gsm_input(ppm=ppm, osr=4, samp_rate_in=samp_rate)
-
-        self.dummy_burst_filter = grgsm.dummy_burst_filter()
-        self.timeslot_filter = grgsm.burst_timeslot_filter(self.timeslot)
-
-        if self.chan_mode == 'BCCH':
-            self.bcch_demapper = grgsm.gsm_bcch_ccch_demapper(self.timeslot)
-        elif self.chan_mode == 'BCCH_SDCCH4':
-            self.bcch_sdcch4_demapper = grgsm.gsm_bcch_ccch_sdcch4_demapper(self.timeslot)
-
-        self.cch_decoder = grgsm.control_channels_decoder()
-        self.tmsi_dumper = grgsm.tmsi_dumper()
-        self.socket_pdu_server = blocks.socket_pdu("UDP_SERVER", "127.0.0.1", "4729", 10000)
-        self.socket_pdu = blocks.socket_pdu("UDP_CLIENT", "127.0.0.1", "4729", 10000)
-
-        ##################################################
-        # Asynch Message Connections
-        ##################################################
-
-        if self.burst_file:
-            self.msg_connect(self.burst_file_source, "out", self.dummy_burst_filter, "in")
-        elif self.cfile:
-            self.connect((self.file_source, 0), (self.input_adapter, 0))
-            self.connect((self.input_adapter, 0), (self.receiver, 0))
-            if self.fc is not None:
-                self.msg_connect(self.offset_control, "ctrl", self.input_adapter, "ctrl_in")
-                self.msg_connect(self.receiver, "measurements", self.offset_control, "measurements")
-            self.msg_connect(self.receiver, "C0", self.dummy_burst_filter, "in")
-
-        self.msg_connect(self.dummy_burst_filter, "out", self.timeslot_filter, "in")
-
-        if self.chan_mode == 'BCCH':
-            self.msg_connect(self.timeslot_filter, "out", self.bcch_demapper, "bursts")
-            self.msg_connect(self.bcch_demapper, "bursts", self.cch_decoder, "bursts")
-            self.msg_connect(self.cch_decoder, "msgs", self.socket_pdu, "pdus")
-            self.msg_connect(self.cch_decoder, "msgs", self.tmsi_dumper, "msgs")
-
-        elif self.chan_mode == 'BCCH_SDCCH4':
-            self.msg_connect(self.timeslot_filter, "out", self.bcch_sdcch4_demapper, "bursts")
-            self.msg_connect(self.bcch_sdcch4_demapper, "bursts", self.cch_decoder, "bursts")
-            self.msg_connect(self.cch_decoder, "msgs", self.socket_pdu, "pdus")
-            self.msg_connect(self.cch_decoder, "msgs", self.tmsi_dumper, "msgs")

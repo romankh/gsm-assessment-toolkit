@@ -8,20 +8,20 @@ from core.adapterinterfaces.a5 import A5ReconstructionAdapter
 class KrakenA51ReconstructorAdapter(A5ReconstructionAdapter):
     def __init__(self, config_provider):
         super(KrakenA51ReconstructorAdapter, self).__init__(config_provider)
+        self.__host = config_provider.get("kraken", "host")
+        self.__port = config_provider.getint("kraken", "port")
 
     def reconstruct(self, a5_burst_set):
         super(KrakenA51ReconstructorAdapter, self).reconstruct(a5_burst_set)
 
     def send2kraken(self, kraken_burst, verbose=False):
-        host = "localhost"
-        port = 9999
         cracked = False
         invalid = False
         failed = False
         found_key = None
 
         # Todo: Timeout for connection
-        remote_address = (host, port)
+        remote_address = (self.__host, self.__port)
         sock = None
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

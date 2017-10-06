@@ -4,7 +4,7 @@ import imp
 import os
 
 import grgsm
-
+from core.common import arfcn
 from core.plugin.interface import plugin, PluginBase, cmd, arg, arg_exclusive, arg_group
 
 
@@ -39,7 +39,7 @@ class DecoderPlugin(PluginBase):
     @arg_group(name="Cfile Options", args=[
         arg("-a", action="store", dest="arfcn", type=int, help="ARFCN of the cfile capture."),
         arg("-f", action="store", dest="freq", type=float, help="Frequency of the cfile capture."),
-        arg("-b", action="store", dest="band", choices=grgsm.arfcn.get_bands(), help="GSM of the cfile capture."),
+        arg("-b", action="store", dest="band", choices=arfcn.get_bands(), help="GSM of the cfile capture."),
         arg("-p", action="store", dest="ppm", type=int, help="Set ppm. Default: value from config file."),
         arg("-s", action="store", dest="samp_rate", type=float,
             help="Set sample rate. Default: value from config file."),
@@ -48,8 +48,8 @@ class DecoderPlugin(PluginBase):
     @arg_group(name="Decryption Options", args=[
         arg("-5", "--a5", action="store", dest="a5", type=int, help="A5 version.", default=1),
         arg("-k", "--kc", action="store", dest="kc", help="A5 session key Kc. Valid formats are "
-                                                                      "'0x12,0x34,0x56,0x78,0x90,0xAB,0xCD,0xEF' "
-                                                                      "and '1234567890ABCDEF'"),
+                                                          "'0x12,0x34,0x56,0x78,0x90,0xAB,0xCD,0xEF' "
+                                                          "and '1234567890ABCDEF'"),
     ])
     @arg_group(name="TCH Options", args=[
         arg("-c", action="store", dest="speech_codec", choices=tch_codecs.keys(), help="TCH-F speech codec."),
@@ -109,30 +109,29 @@ class DecoderPlugin(PluginBase):
         if args.kc is not None:
             kc_parse(kc, args.kc)
 
-
         if freq is not None:
             if band:
-                if not grgsm.arfcn.is_valid_downlink(freq, band):
+                if not arfcn.is_valid_downlink(freq, band):
                     self.printmsg("Frequency is not valid in the specified band")
                     return
                 else:
-                    arfcn = grgsm.arfcn.downlink2arfcn(freq, band)
+                    arfcn = arfcn.downlink2arfcn(freq, band)
             else:
-                for band in grgsm.arfcn.get_bands():
-                    if grgsm.arfcn.is_valid_downlink(freq, band):
-                        arfcn = grgsm.arfcn.downlink2arfcn(freq, band)
+                for band in arfcn.get_bands():
+                    if arfcn.is_valid_downlink(freq, band):
+                        arfcn = arfcn.downlink2arfcn(freq, band)
                         break
         elif arfcn is not None:
             if band:
-                if not grgsm.arfcn.is_valid_arfcn(arfcn, band):
+                if not arfcn.is_valid_arfcn(arfcn, band):
                     self.printmsg("ARFCN is not valid in the specified band")
                     return
                 else:
-                    freq = grgsm.arfcn.arfcn2downlink(arfcn, band)
+                    freq = arfcn.arfcn2downlink(arfcn, band)
             else:
-                for band in grgsm.arfcn.get_bands():
-                    if grgsm.arfcn.is_valid_arfcn(arfcn, band):
-                        freq = grgsm.arfcn.arfcn2downlink(arfcn, band)
+                for band in arfcn.get_bands():
+                    if arfcn.is_valid_arfcn(arfcn, band):
+                        freq = arfcn.arfcn2downlink(arfcn, band)
                         break
 
         if ppm is None:

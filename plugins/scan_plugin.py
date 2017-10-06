@@ -6,6 +6,7 @@ import subprocess
 
 import grgsm
 
+from core.common import arfcn
 from core.plugin.interface import PluginBase, plugin, cmd, arg, arg_group, PluginError
 from core.plugin.silencer import Silencer
 
@@ -19,7 +20,8 @@ class ScanPlugin(PluginBase):
             help="Set sample rate. Default: value from config file."),
         arg("-g", action="store", type=float, dest="gain", help="Set gain. Default: value from config file.")
     ])
-    @arg("-b", action="store", dest="band", choices=(grgsm.arfcn.get_bands()), help="GSM band of the ARFCN.")
+    @arg("-b", action="store", dest="band", choices=(arfcn.get_bands()), help="GSM band of the ARFCN.")
+    @arg("-v", action="store_true", dest="verbose", help="Verbose output, including CCCH configuration, cell ARFCN\'s and neighbour ARFCN\'s")
     @cmd(name="scan_rtlsdr", description="Scan a GSM band using a RTL-SDR device.")
     def scan_rtlsdr(self, args):
 
@@ -53,63 +55,68 @@ class ScanPlugin(PluginBase):
 
         channels_num = int(sample_rate / 0.2e6)
 
-        for arfcn_range in grgsm.arfcn.get_arfcn_ranges(args.band):
-            first_arfcn = arfcn_range[0]
-            last_arfcn = arfcn_range[1]
-            last_center_arfcn = last_arfcn - int((channels_num / 2) - 1)
+        for arfcn_range in arfcn.get_arfcn_ranges(args.band):
+            try:
+                first_arfcn = arfcn_range[0]
+                last_arfcn = arfcn_range[1]
+                last_center_arfcn = last_arfcn - int((channels_num / 2) - 1)
 
-            current_freq = grgsm.arfcn.arfcn2downlink(first_arfcn + int(channels_num / 2) - 1, band)
-            last_freq = grgsm.arfcn.arfcn2downlink(last_center_arfcn, band)
-            stop_freq = last_freq + 0.2e6 * channels_num
+                current_freq = arfcn.arfcn2downlink(first_arfcn + int(channels_num / 2) - 1, band)
+                last_freq = arfcn.arfcn2downlink(last_center_arfcn, band)
+                stop_freq = last_freq + 0.2e6 * channels_num
 
-            while current_freq < stop_freq:
-                # silence rtl_sdr output:
-                with Silencer():
-                    # instantiate scanner and processor
-                    scanner = grgsm_scanner.wideband_scanner(rec_len=6 - speed,
-                                                             sample_rate=sample_rate,
-                                                             carrier_frequency=current_freq,
-                                                             ppm=ppm, args="")
-                    # start recording
-                    scanner.start()
-                    scanner.wait()
-                    scanner.stop()
+                while current_freq < stop_freq:
+                    # silence rtl_sdr output:
+                    with Silencer():
+                        # instantiate scanner and processor
+                        scanner = grgsm_scanner.wideband_scanner(rec_len=6 - speed,
+                                                                 sample_rate=sample_rate,
+                                                                 carrier_frequency=current_freq,
+                                                                 ppm=ppm, args="")
+                        # start recording
+                        scanner.start()
+                        scanner.wait()
+                        scanner.stop()
 
-                    freq_offsets = numpy.fft.ifftshift(
-                        numpy.array(
-                            range(int(-numpy.floor(channels_num / 2)), int(numpy.floor((channels_num + 1) / 2)))) * 2e5)
-                    detected_c0_channels = scanner.gsm_extract_system_info.get_chans()
+                        freq_offsets = numpy.fft.ifftshift(
+                            numpy.array(
+                                range(int(-numpy.floor(channels_num / 2)), int(numpy.floor((channels_num + 1) / 2)))) * 2e5)
+                        detected_c0_channels = scanner.gsm_extract_system_info.get_chans()
 
-                    found_list = []
+                        found_list = []
 
-                    if detected_c0_channels:
-                        chans = numpy.array(scanner.gsm_extract_system_info.get_chans())
-                        found_freqs = current_freq + freq_offsets[(chans)]
+                        if detected_c0_channels:
+                            chans = numpy.array(scanner.gsm_extract_system_info.get_chans())
+                            found_freqs = current_freq + freq_offsets[(chans)]
 
-                        cell_ids = numpy.array(scanner.gsm_extract_system_info.get_cell_id())
-                        lacs = numpy.array(scanner.gsm_extract_system_info.get_lac())
-                        mccs = numpy.array(scanner.gsm_extract_system_info.get_mcc())
-                        mncs = numpy.array(scanner.gsm_extract_system_info.get_mnc())
-                        ccch_confs = numpy.array(scanner.gsm_extract_system_info.get_ccch_conf())
-                        powers = numpy.array(scanner.gsm_extract_system_info.get_pwrs())
+                            cell_ids = numpy.array(scanner.gsm_extract_system_info.get_cell_id())
+                            lacs = numpy.array(scanner.gsm_extract_system_info.get_lac())
+                            mccs = numpy.array(scanner.gsm_extract_system_info.get_mcc())
+                            mncs = numpy.array(scanner.gsm_extract_system_info.get_mnc())
+                            ccch_confs = numpy.array(scanner.gsm_extract_system_info.get_ccch_conf())
+                            powers = numpy.array(scanner.gsm_extract_system_info.get_pwrs())
 
-                        for i in range(0, len(chans)):
-                            cell_arfcn_list = scanner.gsm_extract_system_info.get_cell_arfcns(chans[i])
-                            neighbour_list = scanner.gsm_extract_system_info.get_neighbours(chans[i])
+                            for i in range(0, len(chans)):
+                                cell_arfcn_list = scanner.gsm_extract_system_info.get_cell_arfcns(chans[i])
+                                neighbour_list = scanner.gsm_extract_system_info.get_neighbours(chans[i])
 
-                            info = grgsm_scanner.channel_info(grgsm.arfcn.downlink2arfcn(found_freqs[i], band),
-                                                              found_freqs[i],
-                                                              cell_ids[i], lacs[i], mccs[i], mncs[i], ccch_confs[i],
-                                                              powers[i],
-                                                              neighbour_list, cell_arfcn_list)
-                            found_list.append(info)
+                                info = grgsm_scanner.channel_info(arfcn.downlink2arfcn(found_freqs[i], band),
+                                                                  found_freqs[i],
+                                                                  cell_ids[i], lacs[i], mccs[i], mncs[i], ccch_confs[i],
+                                                                  powers[i],
+                                                                  neighbour_list, cell_arfcn_list)
+                                found_list.append(info)
 
-                    scanner = None
+                        scanner = None
 
-                for info in sorted(found_list):
-                    self.printmsg(info.__repr__())
+                    for info in sorted(found_list):
+                        self.printmsg(info.__str__())
+                        if args.verbose:
+                            self.printmsg(info.get_verbose_info())
 
-                current_freq += channels_num * 0.2e6
+                    current_freq += channels_num * 0.2e6
+            except KeyboardInterrupt:
+                self.printmsg("Stopping.")
 
     def get_shmmni(self):
         result = subprocess.check_output(["sysctl kernel.shmmni"], shell=True, stderr=subprocess.STDOUT)

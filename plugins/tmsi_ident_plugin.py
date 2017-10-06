@@ -3,10 +3,9 @@ import Queue
 import os
 import time
 
-import grgsm
-
 from adapter.gat_app_sms_adapter import GatAppSmsAdapter
 from core.adapterinterfaces.types import SmsType
+from core.common import arfcn
 from core.plugin.interface import plugin, PluginBase, cmd, arg_group, arg, arg_exclusive
 from core.plugin.silencer import Silencer
 
@@ -30,7 +29,7 @@ class TmsiIdentificationPlugin(PluginBase):
         arg("-a", action="store", dest="arfcn", type=int, help="ARFCN of the BTS."),
         arg("-f", action="store", dest="freq", type=float, help="Frequency of the BTS.")
     ])
-    @arg("-b", action="store", dest="band", choices=(grgsm.arfcn.get_bands()), help="GSM band of the ARFCN.")
+    @arg("-b", action="store", dest="band", choices=(arfcn.get_bands()), help="GSM band of the ARFCN.")
     @arg("-t", action="store", dest="timeslot", type=int, help="Timeslot of the CCCH.", default=0)
     @arg('msisdn', action="store", help="MSISDN to correlate (i.e. +43123456789).")
     @cmd(name="tmsi_correlation", description="Perform TMSI-MSISDN correlation.")
@@ -56,27 +55,27 @@ class TmsiIdentificationPlugin(PluginBase):
 
         if freq is not None:
             if band:
-                if not grgsm.arfcn.is_valid_downlink(freq, band):
+                if not arfcn.is_valid_downlink(freq, band):
                     self.printmsg("Frequency is not valid in the specified band")
                     return
                 else:
-                    arfcn = grgsm.arfcn.downlink2arfcn(freq, band)
+                    arfcn = arfcn.downlink2arfcn(freq, band)
             else:
-                for band in grgsm.arfcn.get_bands():
-                    if grgsm.arfcn.is_valid_downlink(freq, band):
-                        arfcn = grgsm.arfcn.downlink2arfcn(freq, band)
+                for band in arfcn.get_bands():
+                    if arfcn.is_valid_downlink(freq, band):
+                        arfcn = arfcn.downlink2arfcn(freq, band)
                         break
         elif arfcn is not None:
             if band:
-                if not grgsm.arfcn.is_valid_arfcn(arfcn, band):
+                if not arfcn.is_valid_arfcn(arfcn, band):
                     self.printmsg("ARFCN is not valid in the specified band")
                     return
                 else:
-                    freq = grgsm.arfcn.arfcn2downlink(arfcn, band)
+                    freq = arfcn.arfcn2downlink(arfcn, band)
             else:
-                for band in grgsm.arfcn.get_bands():
-                    if grgsm.arfcn.is_valid_arfcn(arfcn, band):
-                        freq = grgsm.arfcn.arfcn2downlink(arfcn, band)
+                for band in arfcn.get_bands():
+                    if arfcn.is_valid_arfcn(arfcn, band):
+                        freq = arfcn.arfcn2downlink(arfcn, band)
                         break
 
         # todo: stop if max_iterations < 6

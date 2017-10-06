@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
 
-import grgsm
-
 from adapter.grgsm.tmsi import TmsiCapture
+from core.common import arfcn
 from core.plugin.interface import plugin, PluginBase, cmd, arg_group, arg, arg_exclusive, PluginError
 
 
@@ -18,7 +17,7 @@ class TmsiPlugin(PluginBase):
     @arg_group(name="Cfile Options", args=[
         arg("-a", action="store", dest="arfcn", type=int, help="ARFCN of the cfile capture."),
         arg("-f", action="store", dest="freq", type=float, help="Frequency of the cfile capture."),
-        arg("-b", action="store", dest="band", choices=grgsm.arfcn.get_bands(), help="GSM of the cfile capture."),
+        arg("-b", action="store", dest="band", choices=arfcn.get_bands(), help="GSM of the cfile capture."),
         arg("-p", action="store", dest="ppm", type=int, help="Set ppm. Default: value from config file."),
         arg("-s", action="store", dest="samp_rate", type=float,
             help="Set sample rate. Default: value from config file."),

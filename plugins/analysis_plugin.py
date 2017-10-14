@@ -2,6 +2,7 @@
 
 from adapter.grgsm.info_extractor import InfoExtractor
 from core.plugin.interface import plugin, PluginBase, arg, cmd, subcmd
+from core.util.text_utils import columnize
 
 channel_modes = ['BCCH_SDCCH4', 'SDCCH8']
 
@@ -51,15 +52,18 @@ class AnalysisPlugin(PluginBase):
         ia_tas = extractor.gsm_extract_immediate_assignment.get_timing_advances()
         ia_mobileallocations = extractor.gsm_extract_immediate_assignment.get_mobile_allocations()
 
-        if len(ia_fnrs) > 0:
-            self.printmsg("IAs:")
+        if len(ia_fnrs) == 0:
+            self.printmsg("No Immediate Assignment messages found.")
+        else:
+            strings = ["FNR", "TYPE", "TIMESLOT",  "TIMING ADVANCE",  "SUBCHANNEL", "HOPPING"]
+
             self.printmsg("FNR  TYPE  TIMESLOT  TIMING ADVANCE  SUBCHANNEL HOPPING")
             for i in range(0, len(ia_fnrs)):
-                self.printmsg("%s %s %s %s %s %s" % (ia_fnrs[i],
-                                                     ia_channeltypes[i][:4] if ia_channeltypes[i].startswith(
-                                                         "GPRS") else
-                                                     ia_channeltypes[i],
-                                                     ia_timeslots[i],
-                                                     ia_tas[i],
-                                                     ia_subchannels[i],
-                                                     "Y" if ia_hopping[i] == 1 else "N",))
+                strings.append(str(ia_fnrs[i]))
+                strings.append(str(ia_channeltypes[i][:4]) if ia_channeltypes[i].startswith("GPRS") else str(ia_channeltypes[i]))
+                strings.append(str(ia_timeslots[i]))
+                strings.append(str(ia_tas[i]))
+                strings.append(str(ia_subchannels[i]))
+                strings.append("Y" if ia_hopping[i] == 1 else "N")
+
+            self.printmsg(columnize(strings, 6))

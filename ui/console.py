@@ -136,66 +136,6 @@ class ConsoleUI(Controller):
 
         return self._execute_command(cmd, arg)
 
-    def columnize(self, string_list, displaywidth=80):
-        """
-        columnize method from cmd.cmd module.
-        Display a list of strings as a compact set of columns.
-        Each column is only as wide as necessary.
-        Columns are separated by two spaces (one was not legible enough).
-
-        :param string_list: list of strings to display in columns.
-        :param displaywidth: number of columns to display.
-        """
-        if not string_list:
-            self.stdout.write("<empty>\n")
-            return
-        nonstrings = [i for i in range(len(string_list))
-                      if not isinstance(string_list[i], str)]
-        if nonstrings:
-            raise TypeError, ("string_list[i] not a string for i in %s" %
-                              ", ".join(map(str, nonstrings)))
-        size = len(string_list)
-        if size == 1:
-            self.stdout.write('%s\n' % str(string_list[0]))
-            return
-        # Try every row count from 1 upwards
-        for nrows in range(1, len(string_list)):
-            ncols = (size + nrows - 1) // nrows
-            colwidths = []
-            totwidth = -2
-            for col in range(ncols):
-                colwidth = 0
-                for row in range(nrows):
-                    i = row + nrows * col
-                    if i >= size:
-                        break
-                    x = string_list[i]
-                    colwidth = max(colwidth, len(x))
-                colwidths.append(colwidth)
-                totwidth += colwidth + 2
-                if totwidth > displaywidth:
-                    break
-            if totwidth <= displaywidth:
-                break
-        else:
-            nrows = len(string_list)
-            ncols = 1
-            colwidths = [0]
-        for row in range(nrows):
-            texts = []
-            for col in range(ncols):
-                i = row + nrows * col
-                if i >= size:
-                    x = ""
-                else:
-                    x = string_list[i]
-                texts.append(x)
-            while texts and not texts[-1]:
-                del texts[-1]
-            for col in range(len(texts)):
-                texts[col] = texts[col].ljust(colwidths[col])
-            self.stdout.write("%s\n" % str("  ".join(texts)))
-
     # replaces readline's original hook
     def rl_display_hook(self, substitution, matches, longest_match_length):
         """

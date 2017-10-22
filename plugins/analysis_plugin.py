@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
+import os
 
 from adapter.grgsm.info_extractor import InfoExtractor
-from core.plugin.interface import plugin, PluginBase, arg, cmd, subcmd
+from adapter.grgsm.tmsi import TmsiCapture
+from core.plugin.interface import plugin, PluginBase, arg, cmd, subcmd, PluginError
 from core.util.text_utils import columnize
 
 channel_modes = ['BCCH_SDCCH4', 'SDCCH8']
@@ -55,15 +57,86 @@ class AnalysisPlugin(PluginBase):
         if len(ia_fnrs) == 0:
             self.printmsg("No Immediate Assignment messages found.")
         else:
-            strings = ["FNR", "TYPE", "TIMESLOT",  "TIMING ADVANCE",  "SUBCHANNEL", "HOPPING"]
+            strings = ["FNR", "TYPE", "TIMESLOT", "TIMING ADVANCE", "SUBCHANNEL", "HOPPING"]
 
             self.printmsg("FNR  TYPE  TIMESLOT  TIMING ADVANCE  SUBCHANNEL HOPPING")
             for i in range(0, len(ia_fnrs)):
                 strings.append(str(ia_fnrs[i]))
-                strings.append(str(ia_channeltypes[i][:4]) if ia_channeltypes[i].startswith("GPRS") else str(ia_channeltypes[i]))
+                strings.append(
+                    str(ia_channeltypes[i][:4]) if ia_channeltypes[i].startswith("GPRS") else str(ia_channeltypes[i]))
                 strings.append(str(ia_timeslots[i]))
                 strings.append(str(ia_tas[i]))
                 strings.append(str(ia_subchannels[i]))
                 strings.append("Y" if ia_hopping[i] == 1 else "N")
 
             self.printmsg(columnize(strings, 6))
+
+    @arg("-v", action="store_true", dest="verbose", help="If set, the captured TMSI / IMSI are printed.")
+    @arg("-o", action="store", dest="dest_file",
+         help="If set, the captured TMSI / IMSI are stored in the specified file.")
+    @arg("-m", action="store", dest="mode", choices=channel_modes, help="Channel mode.", default="BCCH")
+    @arg("-t", action="store", dest="timeslot", type=int, help="Timeslot of the CCCH.", default=0)
+    @arg("--bursts", action="store_path", dest="bursts", help="bursts.")
+    @subcmd(name="tmsi", help="Output TMSIs in a capture.", parent="analyze")
+    def tmsi(self, args):
+        verbose = args.verbose
+        destfile = None
+        mode = args.mode
+        timeslot = args.timeslot
+        burstfile = None
+
+        if args.bursts is None:
+            raise PluginError("Provide a burst file.")
+
+        if args.dest_file is not None:
+            destfile = self._data_access_provider.getfilepath(args.dest_file)
+        if args.bursts is not None:
+            burstfile = self._data_access_provider.getfilepath(args.bursts)
+
+        flowgraph = TmsiCapture(timeslot=timeslot, chan_mode=mode,
+                                burst_file=burstfile,
+                                cfile=None, fc=None, samp_rate=None, ppm=None)
+        flowgraph.start()
+        flowgraph.wait()
+
+        tmsis = dict()
+        imsis = dict()
+
+        with open("tmsicount.txt") as file:
+            content = file.readlines()
+
+            for line in content:
+                segments = line.strip().split("-")
+                if segments[0] != "0":
+                    key = segments[0]
+                    if tmsis.has_key(key):
+                        tmsis[key] += 1
+                    else:
+                        tmsis[key] = 1
+                else:
+                    key = segments[2]
+                    if imsis.has_key(key):
+                        imsis[key] += 1
+                    else:
+                        imsis[key] = 1
+
+        self.printmsg("Captured {} TMSI, {} IMSI\n".format(len(tmsis), len(imsis)))
+
+        if verbose or destfile is not None:
+            sorted_tmsis = sorted(tmsis, key=tmsis.__getitem__, reverse=True)
+            sorted_imsis = sorted(imsis, key=imsis.__getitem__, reverse=True)
+
+            if destfile is not None:
+                with open(destfile, "w") as file:
+                    for key in sorted_tmsis:
+                        file.write("{}:{}\n".format(key, tmsis[key]))
+                    for key in sorted_imsis:
+                        file.write("{}:{}\n".format(key, imsis[key]))
+
+            if verbose:
+                for key in sorted_tmsis:
+                    self.printmsg("{} ({} times)".format(key, tmsis[key]))
+                for key in sorted_imsis:
+                    self.printmsg("{} ({} times)".format(key, imsis[key]))
+
+        os.remove("tmsicount.txt")

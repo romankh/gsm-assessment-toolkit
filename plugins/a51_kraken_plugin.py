@@ -8,7 +8,7 @@ import grgsm
 from adapter.grgsm.cmc_analyzer import ImmediateAssignmentExtractor, CMCFinder, CMCAnalyzer, SICollector
 from adapter.kraken_adapter import KrakenA51ReconstructorAdapter
 from core.adapterinterfaces.a5 import A5BurstSet
-from core.common import arfcn
+from core.common import arfcn_converter
 from core.plugin.interface import plugin, PluginBase, cmd, arg, arg_exclusive, arg_group
 
 
@@ -33,7 +33,7 @@ class A51ReconstructionPlugin(PluginBase):
     @arg_group(name="Cfile Options", args=[
         arg("-a", action="store", dest="arfcn", type=int, help="ARFCN of the cfile capture."),
         arg("-f", action="store", dest="freq", type=float, help="Frequency of the cfile capture."),
-        arg("-b", action="store", dest="band", choices=arfcn.get_bands(), help="GSM of the cfile capture."),
+        arg("-b", action="store", dest="band", choices=arfcn_converter.get_bands(), help="GSM of the cfile capture."),
         arg("-p", action="store", dest="ppm", type=int, help="Set ppm. Default: value from config file."),
         arg("-s", action="store", dest="samp_rate", type=float,
             help="Set sample rate. Default: value from config file."),

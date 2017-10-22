@@ -4,7 +4,7 @@ import os
 import signal
 
 from adapter.grgsm.capture import grgsm_capture
-from core.common import arfcn
+from core.common import arfcn_converter
 from core.plugin.interface import plugin, arg_group, arg, PluginBase, arg_exclusive, cmd
 
 
@@ -28,7 +28,7 @@ class CapturePlugin(PluginBase):
         arg("-a", action="store", dest="arfcn", type=int, help="ARFCN of the BTS."),
         arg("-f", action="store", dest="freq", type=float, help="Frequency of the BTS.")
     ])
-    @arg("-b", action="store", dest="band", choices=(arfcn.get_bands()), help="GSM band of the ARFCN.")
+    @arg("-b", action="store", dest="band", choices=(arfcn_converter.get_bands()), help="GSM band of the ARFCN.")
     @cmd(name="capture_rtlsdr", description="Capture and save GSM transmissions using a RTL-SDR device.")
     def capture_rtlsdr(self, args):
         path = self._config_provider.get("gr-gsm", "apps_path")

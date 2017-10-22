@@ -6,7 +6,7 @@ import subprocess
 
 import grgsm
 
-from core.common import arfcn
+from core.common import arfcn_converter
 from core.plugin.interface import PluginBase, plugin, cmd, arg, arg_group, PluginError
 from core.plugin.silencer import Silencer
 
@@ -20,7 +20,7 @@ class ScanPlugin(PluginBase):
             help="Set sample rate. Default: value from config file."),
         arg("-g", action="store", type=float, dest="gain", help="Set gain. Default: value from config file.")
     ])
-    @arg("-b", action="store", dest="band", choices=(arfcn.get_bands()), help="GSM band of the ARFCN.")
+    @arg("-b", action="store", dest="band", choices=(arfcn_converter.get_bands()), help="GSM band of the ARFCN.")
     @arg("-v", action="store_true", dest="verbose", help="Verbose output, including CCCH configuration, cell ARFCN\'s and neighbour ARFCN\'s")
     @cmd(name="scan_rtlsdr", description="Scan a GSM band using a RTL-SDR device.")
     def scan_rtlsdr(self, args):
@@ -55,14 +55,14 @@ class ScanPlugin(PluginBase):
 
         channels_num = int(sample_rate / 0.2e6)
 
-        for arfcn_range in arfcn.get_arfcn_ranges(args.band):
+        for arfcn_range in arfcn_converter.get_arfcn_ranges(args.band):
             try:
                 first_arfcn = arfcn_range[0]
                 last_arfcn = arfcn_range[1]
                 last_center_arfcn = last_arfcn - int((channels_num / 2) - 1)
 
-                current_freq = arfcn.arfcn2downlink(first_arfcn + int(channels_num / 2) - 1, band)
-                last_freq = arfcn.arfcn2downlink(last_center_arfcn, band)
+                current_freq = arfcn_converter.arfcn2downlink(first_arfcn + int(channels_num / 2) - 1, band)
+                last_freq = arfcn_converter.arfcn2downlink(last_center_arfcn, band)
                 stop_freq = last_freq + 0.2e6 * channels_num
 
                 while current_freq < stop_freq:
@@ -100,7 +100,7 @@ class ScanPlugin(PluginBase):
                                 cell_arfcn_list = scanner.gsm_extract_system_info.get_cell_arfcns(chans[i])
                                 neighbour_list = scanner.gsm_extract_system_info.get_neighbours(chans[i])
 
-                                info = grgsm_scanner.channel_info(arfcn.downlink2arfcn(found_freqs[i], band),
+                                info = grgsm_scanner.channel_info(arfcn_converter.downlink2arfcn(found_freqs[i], band),
                                                                   found_freqs[i],
                                                                   cell_ids[i], lacs[i], mccs[i], mncs[i], ccch_confs[i],
                                                                   powers[i],

@@ -17,4 +17,4 @@ More information can be found in the [wiki](https://github.com/romankh/gsm-asses
 - TMSI (and some IMSIs) sniffing / extraction
 - Subscriber identification (TMSI - MSISDN correlation)
 - Analysis of captured transmissions (e.g. Immediate Assignments, Cipher Mode Commands, used encryption). More coming soon.
-- Utilities: Starting a preconfigured Wireshark, info about and conversion of ARFCN and frequencies, manipulation of burst-files.
+- Utilities: Starting a preconfigured Wireshark, info about and conversion of ARFCN and frequencies, manipulation of burst-files, info lookup for MCC and MNC

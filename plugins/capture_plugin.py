@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
-import imp
-import os
 import signal
-
-from adapter.grgsm.capture import grgsm_capture
 from core.common import arfcn_converter
+from adapter.grgsm.capture import grgsm_capture
 from core.plugin.interface import plugin, arg_group, arg, PluginBase, arg_exclusive, cmd
 
 
@@ -32,8 +29,6 @@ class CapturePlugin(PluginBase):
     @cmd(name="capture_rtlsdr", description="Capture and save GSM transmissions using a RTL-SDR device.")
     def capture_rtlsdr(self, args):
         path = self._config_provider.get("gr-gsm", "apps_path")
-        capture = imp.load_source("", os.path.join(path, "grgsm_capture.py"))
-
         freq = args.freq
         arfcn = args.arfcn
         band = args.band
@@ -48,27 +43,27 @@ class CapturePlugin(PluginBase):
 
         if freq is not None:
             if band:
-                if not arfcn.is_valid_downlink(freq, band):
+                if not arfcn_converter.is_valid_downlink(freq, band):
                     self.printmsg("Frequency is not valid in the specified band")
                     return
                 else:
-                    arfcn = arfcn.downlink2arfcn(freq, band)
+                    arfcn = arfcn_converter.downlink2arfcn(freq, band)
             else:
-                for band in arfcn.get_bands():
-                    if arfcn.is_valid_downlink(freq, band):
+                for band in arfcn_converter.get_bands():
+                    if arfcn_converter.is_valid_downlink(freq, band):
                         arfcn = arfcn.downlink2arfcn(freq, band)
                         break
         elif arfcn is not None:
             if band:
-                if not arfcn.is_valid_arfcn(arfcn, band):
+                if not arfcn_converter.is_valid_arfcn(arfcn, band):
                     self.printmsg("ARFCN is not valid in the specified band")
                     return
                 else:
-                    freq = arfcn.arfcn2downlink(arfcn, band)
+                    freq = arfcn_converter.arfcn2downlink(arfcn, band)
             else:
-                for band in arfcn.get_bands():
-                    if arfcn.is_valid_arfcn(arfcn, band):
-                        freq = arfcn.arfcn2downlink(arfcn, band)
+                for band in arfcn_converter.get_bands():
+                    if arfcn_converter.is_valid_arfcn(arfcn, band):
+                        freq = arfcn_converter.arfcn2downlink(arfcn, band)
                         break
 
         if ppm is None:

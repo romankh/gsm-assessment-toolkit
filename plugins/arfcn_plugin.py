@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import grgsm
-
 from core.common import arfcn_converter
 from core.plugin.interface import plugin, arg, cmd, PluginBase
 

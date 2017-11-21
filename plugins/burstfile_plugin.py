@@ -18,7 +18,7 @@ class BurstfilePlugin(PluginBase):
     @arg("-d", action="store", dest="remove_dummy", type=bool, default=False, help="Remove dummy bursts")
     @arg("input_burst_file", action="store_path", help="The source burst file")
     @arg("output_burst_file", action="store_path", help="The destination burst file")
-    @subcmd(name="filter", help="Prints frequency information for an ARFCN.", parent="bursts")
+    @subcmd(name="filter", help="Filter bursts with provided criteria.", parent="bursts")
     def filter(self, args):
         block = BurstFilter(args.input_burst_file, args.output_burst_file, args.after, args.before, args.timeslot,
                             args.subslot, args.remove_dummy)

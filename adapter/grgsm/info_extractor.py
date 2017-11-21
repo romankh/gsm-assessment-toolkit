@@ -17,7 +17,6 @@ class InfoExtractor(gr.top_block):
 
         self.gsm_control_channels_decoder = grgsm.control_channels_decoder()
         self.gsm_extract_cmc = grgsm.extract_cmc()
-        # self.gsm_extract_immediate_assignment = grgsm.extract_immediate_assignment(False, True, True)
         self.gsm_extract_immediate_assignment = grgsm.extract_immediate_assignment(False, not show_gprs, True)
 
         self.msg_connect((self.gsm_burst_file_source, 'out'), (self.gsm_burst_timeslot_filter, 'in'))

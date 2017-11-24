@@ -3,8 +3,6 @@ import array
 from itertools import cycle, dropwhile
 from subprocess import check_output
 
-import grgsm
-
 from adapter.grgsm.cmc_analyzer import ImmediateAssignmentExtractor, CMCFinder, CMCAnalyzer, SICollector
 from adapter.kraken_adapter import KrakenA51ReconstructorAdapter
 from core.adapterinterfaces.a5 import A5BurstSet
@@ -114,7 +112,7 @@ class A51ReconstructionPlugin(PluginBase):
             for burst_set in kraken_burst_sets:
                 if sdcch_counter % 4 == 0 and args.verbose:
                     self.printmsg(
-                        "Using SDCCH message bursts %s - %s" % (burst_set.frame_number, burst_set.frame_number + 4))
+                        "Using SDCCH message bursts %s - %s" % (burst_set.frame_number, burst_set.frame_number + 3))
                 sdcch_counter += 1
 
                 key = kraken_adapter.send2kraken(burst_set, args.verbose)
@@ -123,13 +121,10 @@ class A51ReconstructionPlugin(PluginBase):
                     self.printmsg("Key found: %s" % key)
                     break
                 else:
-                    # self.printmsg("%s - no key found" % burst_set.frame_number)
                     pass
 
         if key_found or args.attackmode == "SDCCH":
             return
-
-        # self.printmsg("Starting attack on SACCH")
 
         last_sit_fnr = -1
         last_si_type = None
@@ -143,7 +138,6 @@ class A51ReconstructionPlugin(PluginBase):
                 # extract timing advance
                 last_si_type = cmc_analyzer.sacch_sits[sit_fnr][1]
                 data_string = cmc_analyzer.sacch_sits[sit_fnr][2]
-                # byte_arr = array.array('B', data_string.decode("hex"))
 
                 byte_list = self.byte_string_to_list(data_string)
                 timingadvance = byte_list[1]
@@ -156,7 +150,6 @@ class A51ReconstructionPlugin(PluginBase):
         if last_sit_fnr == -1:
             self.printmsg("Could not determine last System Information message")
             return
-        # self.printmsg("Last SI message at " + str(last_sit_fnr))
 
         si_collector = SICollector(timeslot, burst_file, mode)
         si_collector.start()
@@ -181,7 +174,11 @@ class A51ReconstructionPlugin(PluginBase):
         # create bursts for all system information message types
         plaintext_si_bursts = dict()
         for msg in plaintext_si_msgs:
-            plaintext_si_bursts[msg] = self.message_to_bursts(plaintext_si_msgs[msg])
+            try:
+                plaintext_si_bursts[msg] = self.message_to_bursts(plaintext_si_msgs[msg])
+            except OSError:
+                self.printmsg("Cannot encode burst. Please install gsmframecoder to execute attack mode SACCH.")
+                return
 
         sacch_si_types = ["System Information Type 5", "System Information Type 5bis", "System Information Type 5ter",
                           "System Information Type 6"]
@@ -232,9 +229,6 @@ class A51ReconstructionPlugin(PluginBase):
                 break
             else:
                 pass
-                # self.printmsg("%s - no key found" % burst_set.frame_number)
-
-                # self.printmsg("I am done....")
                 # Todo: look at a lapdm ui message: if randomized, we wont do the attempt on sdcch
 
     def byte_string_to_list(self, string):
